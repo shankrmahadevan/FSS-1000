@@ -173,7 +173,7 @@ def get_oneshot_batch(testname):  #shuffle in query_images not done
     j = 0
     for k in chosen_index:
         # process image
-        image = cv2.imread('%s/image/%s' % (args.support_dir, imgnames[k].replace('.png', '.jpg')))
+        image = cv2.imread('%s/image/%s' % (args.support_dir, imgnames[k]))
         if image is None:
             raise Exception('cannot load image ')
             
@@ -387,12 +387,13 @@ def main():
                 supplabel = (supplabel * 255).astype(np.uint8)
                 suppedge = cv2.Canny(supplabel,1,1)
 
-                cv2.imwrite('./result1/%s/supp%s.png' % (classname,i), maskimg(suppimg, supplabel.copy()[:,:,0], suppedge,color=[0,255,0]))
+#                 cv2.imwrite('./result1/%s/supp%s.png' % (classname,i), maskimg(suppimg, supplabel.copy()[:,:,0], suppedge,color=[0,255,0]))
         testimg = np.transpose(batches.numpy()[0][0:3], (1,2,0))[:,:,::-1] * 255
         testlabel = stick[224*3:224*4, 224*i:224*(i+1),:].astype(np.uint8)
         testedge = cv2.Canny(testlabel,1,1)
-        cv2.imwrite('./result1/%s/test%s_raw.png' % (classname, cnt), testimg) #raw image
-        cv2.imwrite('./result1/%s/test%s.png' % (classname,cnt), maskimg(testimg, testlabel.copy()[:,:,0], testedge))
+#         cv2.imwrite('./result1/%s/test%s_raw.png' % (classname, cnt), testimg) #raw image
+#         cv2.imwrite('./result1/%s/test%s.png' % (classname,cnt), maskimg(testimg, testlabel.copy()[:,:,0], testedge))
+        cv2.imwrite('./result1/%s/%s' % (classname,testname), testlabel)
 
 if __name__ == '__main__':
     main()
