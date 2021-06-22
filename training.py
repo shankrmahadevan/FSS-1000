@@ -171,7 +171,7 @@ def weights_init(m):
 
 def get_oneshot_batch():  #shuffle in query_images not done
     # classes.remove(EXCLUDE_CLASS)
-    classes_name = os.listdir('./fewshot/support/')
+    classes_name = os.listdir('support/')
     classes = list(range(0,len(classes_name)))
 
     chosen_classes = random.sample(classes, CLASS_NUM)
@@ -183,21 +183,21 @@ def get_oneshot_batch():  #shuffle in query_images not done
     class_cnt = 0
     for i in chosen_classes:
         # print ('class %s is chosen' % i)
-        imgnames = os.listdir('./fewshot/support/%s/label' % classes_name[i])
+        imgnames = os.listdir('support/%s/label' % classes_name[i])
         indexs = list(range(0,len(imgnames)))
         chosen_index = random.sample(indexs, SAMPLE_NUM_PER_CLASS + BATCH_NUM_PER_CLASS)
         j = 0
         for k in chosen_index:
             # process image
-            image = cv2.imread('./fewshot/support/%s/image/%s' % (classes_name[i], imgnames[k].replace('.png', '.jpg')))
+            image = cv2.imread('support/%s/image/%s' % (classes_name[i], imgnames[k]))
             if image is None:
-                print ('./fewshot/support/%s/image/%s' % (classes_name[i], imgnames[k].replace('.png', '.jpg')))
+                print ('support/%s/image/%s' % (classes_name[i], imgnames[k]))
                 stop
             image = image[:,:,::-1] # bgr to rgb
             image = image / 255.0
             image = np.transpose(image, (2,0,1))
             # labels
-            label = cv2.imread('./fewshot/support/%s/label/%s' % (classes_name[i], imgnames[k]))[:,:,0]
+            label = cv2.imread('support/%s/label/%s' % (classes_name[i], imgnames[k]))[:,:,0]
             if j < SAMPLE_NUM_PER_CLASS:
                 support_images[j] = image
                 support_labels[j][0] = label
