@@ -12,6 +12,10 @@ import argparse
 import random
 import cv2
 
+
+input_dim = (672, 672)[0]
+output_dim = input_dim/32
+assert input_dim % 224 == 0
 parser = argparse.ArgumentParser(description="One Shot Visual Recognition")
 parser.add_argument("-f", "--feature_dim", type=int, default=64)
 parser.add_argument("-r", "--relation_dim", type=int, default=8)
@@ -184,15 +188,15 @@ def get_oneshot_batch():  # shuffle in query_images not done
 
     chosen_classes = random.sample(classes, CLASS_NUM)
     support_images = np.zeros(
-        (CLASS_NUM*SAMPLE_NUM_PER_CLASS, 3, 672, 672), dtype=np.float32)
+        (CLASS_NUM*SAMPLE_NUM_PER_CLASS, 3, input_dim, input_dim), dtype=np.float32)
     support_labels = np.zeros(
-        (CLASS_NUM*SAMPLE_NUM_PER_CLASS, CLASS_NUM, 672, 672), dtype=np.float32)
+        (CLASS_NUM*SAMPLE_NUM_PER_CLASS, CLASS_NUM, input_dim, input_dim), dtype=np.float32)
     query_images = np.zeros(
-        (CLASS_NUM*BATCH_NUM_PER_CLASS, 3, 672, 672), dtype=np.float32)
+        (CLASS_NUM*BATCH_NUM_PER_CLASS, 3, input_dim, input_dim), dtype=np.float32)
     query_labels = np.zeros(
-        (CLASS_NUM*BATCH_NUM_PER_CLASS, CLASS_NUM, 672, 672), dtype=np.float32)
+        (CLASS_NUM*BATCH_NUM_PER_CLASS, CLASS_NUM, input_dim, input_dim), dtype=np.float32)
     zeros = np.zeros((CLASS_NUM*BATCH_NUM_PER_CLASS,
-                      1, 672, 672), dtype=np.float32)
+                      1, input_dim, input_dim), dtype=np.float32)
     class_cnt = 0
     for i in chosen_classes:
         # print ('class %s is chosen' % i)
@@ -205,8 +209,8 @@ def get_oneshot_batch():  # shuffle in query_images not done
             # process image
             image = cv2.imread('support/%s/image/%s' %
                                (classes_name[i], imgnames[k]))
-            if not image.shape[0] == 672:
-                image = cv2.resize(image, (672, 672))
+            if not image.shape[0] == input_dim:
+                image = cv2.resize(image, (input_dim, input_dim))
             if image is None:
                 print('support/%s/image/%s' % (classes_name[i], imgnames[k]))
                 stop
@@ -216,8 +220,8 @@ def get_oneshot_batch():  # shuffle in query_images not done
             # labels
             label = cv2.imread('support/%s/label/%s' %
                                (classes_name[i], imgnames[k]))[:, :, 0]
-            if not label.shape[0] == 672:
-                label = cv2.resize(label, (672, 672),
+            if not label.shape[0] == input_dim:
+                label = cv2.resize(label, (input_dim, input_dim),
                                    interpolation=cv2.INTER_NEAREST)
             if j < SAMPLE_NUM_PER_CLASS:
                 support_images[j] = image
@@ -292,7 +296,7 @@ def main():
         sample_features, _ = feature_encoder(Variable(samples).cuda(GPU))
         # sample_features = sample_features.view(CLASS_NUM,SAMPLE_NUM_PER_CLASS,512,7,7)
         sample_features = sample_features.view(
-            CLASS_NUM, SAMPLE_NUM_PER_CLASS, 512, 21, 21)
+            CLASS_NUM, SAMPLE_NUM_PER_CLASS, 512, output_dim, output_dim)
         sample_features = torch.sum(sample_features, 1).squeeze(1)  # 1*512*7*7
         batch_features, ft_list = feature_encoder(Variable(batches).cuda(GPU))
 
@@ -305,10 +309,10 @@ def main():
 
         # relation_pairs = torch.cat((sample_features_ext,batch_features_ext),2).view(-1,1024,7,7)
         relation_pairs = torch.cat(
-            (sample_features_ext, batch_features_ext), 2).view(-1, 1024, 21, 21)
+            (sample_features_ext, batch_features_ext), 2).view(-1, 1024, output_dim, output_dim)
         # output = relation_network(relation_pairs,ft_list).view(-1,CLASS_NUM,224,224)
         output = relation_network(
-            relation_pairs, ft_list).view(-1, CLASS_NUM, 672, 672)
+            relation_pairs, ft_list).view(-1, CLASS_NUM, input_dim, input_dim)
 
         mse = nn.MSELoss().cuda(GPU)
         loss = mse(output, Variable(batch_labels).cuda(GPU))
