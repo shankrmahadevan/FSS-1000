@@ -14,7 +14,7 @@ import cv2
 
 
 input_dim = (672, 672)[0]
-output_dim = input_dim/32
+output_dim = input_dim//32
 assert input_dim % 224 == 0
 parser = argparse.ArgumentParser(description="One Shot Visual Recognition")
 parser.add_argument("-f", "--feature_dim", type=int, default=64)
