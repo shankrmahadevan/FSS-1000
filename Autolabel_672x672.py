@@ -14,7 +14,7 @@ import subprocess
 import time
 
 
-input_dim = 672
+input_dim = 448
 assert (input_dim%224==0)
 parser = argparse.ArgumentParser(description="One Shot Visual Recognition")
 parser.add_argument("-f","--feature_dim",type = int, default = 64)
@@ -179,13 +179,15 @@ def get_oneshot_batch(testname):  #shuffle in query_images not done
         image = cv2.imread('%s/image/%s' % (args.support_dir, imgnames[k]))
         if image is None:
             raise Exception('cannot load image ')
-            
+        if not image.shape[0] == input_dim:
+          image = cv2.resize(image, (input_dim, input_dim))
         image = image[:,:,::-1] # bgr to rgb
         image = image / 255.0
         image = np.transpose(image, (2,0,1))
         # labels
         # print ('%s/label/%s' % (args.support_dir, imgnames[k]))
         label = cv2.imread('%s/label/%s' % (args.support_dir, imgnames[k]))[:,:,0]
+        label = cv2.resize(label, (input_dim, input_dim), interpolation=cv2.INTER_NEAREST)
 
         support_images[k] = image
         support_labels[k][0] = label
