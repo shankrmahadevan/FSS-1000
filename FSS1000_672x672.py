@@ -13,7 +13,7 @@ import random
 import cv2
 
 
-input_dim = (672, 672)[0]
+input_dim = (448, 448)[0]
 output_dim = input_dim//32
 assert input_dim % 224 == 0
 parser = argparse.ArgumentParser(description="One Shot Visual Recognition")
