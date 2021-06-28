@@ -14,16 +14,15 @@ import subprocess
 import time
 
 
-input_dim = 448
-assert (input_dim%224==0)
 parser = argparse.ArgumentParser(description="One Shot Visual Recognition")
+parser.add_argument("-i","--input_dim",type = int, default = 224)
 parser.add_argument("-f","--feature_dim",type = int, default = 64)
 parser.add_argument("-r","--relation_dim",type = int, default = 8)
 parser.add_argument("-w","--class_num",type = int, default = 1)
 parser.add_argument("-s","--sample_num_per_class",type = int, default = 5)
 parser.add_argument("-b","--batch_num_per_class",type = int, default = 1)
 parser.add_argument("-e","--episode",type = int, default= 50000)
-# parser.add_argument("-t","--test_episode", type = int, default = 1000)
+parser.add_argument("-o","--overlay_mask", type = int, default = 1)
 parser.add_argument("-l","--learning_rate", type = float, default = 0.001)
 parser.add_argument("-g","--gpu",type=int, default=0)
 parser.add_argument("-u","--hidden_unit",type=int,default=10)
@@ -54,6 +53,10 @@ DISPLAY_QUERY = args.display_query_num
 TEST_CLASS = args.test_class
 FEATURE_MODEL = args.feature_encoder_model
 RELATION_MODEL = args.relation_network_model
+
+input_dim = args.input_dim
+overlay_mask = args.overlay_mask
+assert (input_dim%224==0)
 
 class CNNEncoder(nn.Module):
     """docstring for ClassName"""
@@ -155,21 +158,13 @@ class RelationNetwork(nn.Module):
         return out
 
 def get_oneshot_batch(testname):  #shuffle in query_images not done
-    # classes_name = os.listdir('./%s' % args.support_dir)
-    # classes_name = ['android_robot', 'bucket_water' , 'nintendo_gameboy']
-
-
     support_images = np.zeros((CLASS_NUM*SAMPLE_NUM_PER_CLASS,3,input_dim,input_dim), dtype=np.float32)
     support_labels = np.zeros((CLASS_NUM*SAMPLE_NUM_PER_CLASS,CLASS_NUM,input_dim,input_dim), dtype=np.float32)
     query_images = np.zeros((CLASS_NUM*BATCH_NUM_PER_CLASS,3,input_dim,input_dim), dtype=np.float32)
     query_labels = np.zeros((CLASS_NUM*BATCH_NUM_PER_CLASS,CLASS_NUM,input_dim,input_dim), dtype=np.float32)
     zeros = np.zeros((CLASS_NUM*BATCH_NUM_PER_CLASS,1,input_dim,input_dim), dtype=np.float32)
     class_cnt = 0
-
-    # print ('class %s is chosen' % i)
-    # classnames = ['english_foxhound', 'guitar']
     imgnames = os.listdir('./%s/label' % args.support_dir)
-    # print (args.support_dir, imgnames)
     testnames = os.listdir('%s' % args.test_dir)
     indexs = list(range(0,len(imgnames)))[0:5]
     chosen_index = indexs
@@ -184,8 +179,6 @@ def get_oneshot_batch(testname):  #shuffle in query_images not done
         image = image[:,:,::-1] # bgr to rgb
         image = image / 255.0
         image = np.transpose(image, (2,0,1))
-        # labels
-        # print ('%s/label/%s' % (args.support_dir, imgnames[k]))
         label = cv2.imread('%s/label/%s' % (args.support_dir, imgnames[k]))[:,:,0]
         label = cv2.resize(label, (input_dim, input_dim), interpolation=cv2.INTER_NEAREST)
 
@@ -336,10 +329,7 @@ def main():
     testnames = os.listdir('%s' % args.test_dir)
     print ('%s testing images in class %s' % (len(testnames), classname))
 
-    for cnt, testname in enumerate(testnames):
-
-        print ('%s / %s' % (cnt, len(testnames)))
-        print (testname)
+    for cnt, testname in tqdm(enumerate(testnames), total=len(testnames)):
         if cv2.imread('%s/%s' % (args.test_dir, testname)) is None:
             continue
 
@@ -386,13 +376,13 @@ def main():
                 supplabel = (supplabel * 255).astype(np.uint8)
                 suppedge = cv2.Canny(supplabel,1,1)
 
-#                 cv2.imwrite('./result1/%s/supp%s.png' % (classname,i), maskimg(suppimg, supplabel.copy()[:,:,0], suppedge,color=[0,255,0]))
         testimg = np.transpose(batches.numpy()[0][0:3], (1,2,0))[:,:,::-1] * 255
         testlabel = stick[input_dim*3:input_dim*4, input_dim*i:input_dim*(i+1),:].astype(np.uint8)
         testedge = cv2.Canny(testlabel,1,1)
-#         cv2.imwrite('./result1/%s/test%s_raw.png' % (classname, cnt), testimg) #raw image
-#         cv2.imwrite('./result1/%s/test%s.png' % (classname,cnt), maskimg(testimg, testlabel.copy()[:,:,0], testedge))
-        cv2.imwrite('./result1/%s/%s' % (classname,testname), testlabel)
+        if overlay_mask:
+          cv2.imwrite('./result1/%s/%s' % (classname,testname), maskimg(testimg, testlabel.copy()[:,:,0], testedge))
+        else:
+          cv2.imwrite('./result1/%s/%s' % (classname,testname), testlabel)
 
 if __name__ == '__main__':
     main()
