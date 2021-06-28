@@ -13,10 +13,8 @@ import random
 import cv2
 
 
-input_dim = (448, 448)[0]
-output_dim = input_dim//32
-assert input_dim % 224 == 0
 parser = argparse.ArgumentParser(description="One Shot Visual Recognition")
+parser.add_argument("-i","--input_dim",type = int, default = 224)
 parser.add_argument("-f", "--feature_dim", type=int, default=64)
 parser.add_argument("-r", "--relation_dim", type=int, default=8)
 parser.add_argument("-w", "--class_num", type=int, default=1)
@@ -61,6 +59,9 @@ EXCLUDE_CLASS = args.exclude_class
 FEATURE_MODEL = args.feature_encoder_model
 RELATION_MODEL = args.relation_network_model
 
+input_dim = args.input_dim
+output_dim = input_dim // 32
+assert (input_dim%224==0)
 
 class CNNEncoder(nn.Module):
     """docstring for ClassName"""
