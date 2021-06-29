@@ -338,15 +338,16 @@ def main():
         samples, sample_labels, batches, batch_labels = get_oneshot_batch(testname)
 
         #forward
-        sample_features, _ = feature_encoder(Variable(samples).cuda(GPU))
-        sample_features = sample_features.view(CLASS_NUM,SAMPLE_NUM_PER_CLASS,512,input_dim//32,input_dim//32)
-        sample_features = torch.sum(sample_features,1).squeeze(1) # 1*512*7*7
-        batch_features, ft_list = feature_encoder(Variable(batches).cuda(GPU))
-        sample_features_ext = sample_features.unsqueeze(0).repeat(BATCH_NUM_PER_CLASS*CLASS_NUM,1,1,1,1)
-        batch_features_ext = batch_features.unsqueeze(0).repeat(CLASS_NUM,1,1,1,1)
-        batch_features_ext = torch.transpose(batch_features_ext,0,1)
-        relation_pairs = torch.cat((sample_features_ext,batch_features_ext),2).view(-1,1024,input_dim//32,input_dim//32)
-        output = relation_network(relation_pairs,ft_list).view(-1,CLASS_NUM,input_dim,input_dim)
+        with toch.no_grad():
+          sample_features, _ = feature_encoder(Variable(samples).cuda(GPU))
+          sample_features = sample_features.view(CLASS_NUM,SAMPLE_NUM_PER_CLASS,512,input_dim//32,input_dim//32)
+          sample_features = torch.sum(sample_features,1).squeeze(1) # 1*512*7*7
+          batch_features, ft_list = feature_encoder(Variable(batches).cuda(GPU))
+          sample_features_ext = sample_features.unsqueeze(0).repeat(BATCH_NUM_PER_CLASS*CLASS_NUM,1,1,1,1)
+          batch_features_ext = batch_features.unsqueeze(0).repeat(CLASS_NUM,1,1,1,1)
+          batch_features_ext = torch.transpose(batch_features_ext,0,1)
+          relation_pairs = torch.cat((sample_features_ext,batch_features_ext),2).view(-1,1024,input_dim//32,input_dim//32)
+          output = relation_network(relation_pairs,ft_list).view(-1,CLASS_NUM,input_dim,input_dim)
 
         classiou = 0
         for i in range(0, batches.size()[0]):
