@@ -338,7 +338,7 @@ def main():
         samples, sample_labels, batches, batch_labels = get_oneshot_batch(testname)
 
         #forward
-        with toch.no_grad():
+        with torch.no_grad():
           sample_features, _ = feature_encoder(Variable(samples).cuda(GPU))
           sample_features = sample_features.view(CLASS_NUM,SAMPLE_NUM_PER_CLASS,512,input_dim//32,input_dim//32)
           sample_features = torch.sum(sample_features,1).squeeze(1) # 1*512*7*7
