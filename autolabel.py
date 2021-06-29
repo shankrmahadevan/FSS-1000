@@ -12,6 +12,7 @@ import random
 import cv2
 import subprocess
 import time
+from tqdm import tqdm
 
 
 parser = argparse.ArgumentParser(description="One Shot Visual Recognition")
