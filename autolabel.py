@@ -15,6 +15,7 @@ import time
 from tqdm import tqdm
 
 
+torch.backends.cudnn.benchmark = True
 parser = argparse.ArgumentParser(description="One Shot Visual Recognition")
 parser.add_argument("-i","--input_dim",type = int, default = 224)
 parser.add_argument("-f","--feature_dim",type = int, default = 64)
