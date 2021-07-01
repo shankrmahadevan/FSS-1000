@@ -175,8 +175,8 @@ def get_oneshot_batch(testname):  #shuffle in query_images not done
         # process image
         image = cv2.imread('%s/image/%s' % (args.support_dir, imgnames[k]))
         if image is None:
-            raise Exception('cannot load image ')
             print('%s/image/%s' % (args.support_dir, imgnames[k]))
+            raise Exception('cannot load image ')
         if not image.shape[0] == input_dim:
           image = cv2.resize(image, (input_dim, input_dim))
         image = image[:,:,::-1] # bgr to rgb
