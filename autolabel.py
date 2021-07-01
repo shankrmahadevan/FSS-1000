@@ -209,7 +209,7 @@ def get_oneshot_batch(testname):  #shuffle in query_images not done
     return support_images_tensor, support_labels_tensor, query_images_tensor, query_labels_tensor
 
   
-  def maskimg(img, mask, edge, color=[0, 0, 255], alpha=0.5):
+def maskimg(img, mask, edge, color=[0, 0, 255], alpha=0.5):
     '''
     img: cv2 image
     mask: bool or np.where
